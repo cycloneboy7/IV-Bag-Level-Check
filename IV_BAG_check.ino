@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <WebServer.h>
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 #include "HX711.h"
@@ -7,12 +8,48 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define CLK  19
 HX711 scale(DOUT, CLK);
 
+char ssid[] = "YOUR_WIFI_NAME";
+char pass[] = "YOUR_WIFI_PASSWORD";
+
+WebServer server(80);
 
 int liter;
 int val;
 float weight; 
 float calibration_factor = 102500; // change this value for your Load cell sensor 
- 
+
+void handleRoot() {
+  String page = "<!DOCTYPE html><html>";
+  page += "<head>";
+  page += "<meta http-equiv='refresh' content='2'>";
+  page += "<title>IV Bag Monitoring</title>";
+  page += "<style>";
+  page += "body{font-family:Arial;text-align:center;background:#f5f5f5;}";
+  page += "h1{color:#0066cc;}";
+  page += ".box{background:white;padding:20px;margin:30px auto;width:300px;border-radius:10px;box-shadow:0 0 10px gray;}";
+  page += "</style>";
+  page += "</head>";
+
+  page += "<body>";
+  page += "<div class='box'>";
+  page += "<h1>IV Bag Monitoring</h1>";
+  page += "<h2>Remaining Volume</h2>";
+  page += "<h1>" + String(liter) + " mL</h1>";
+  page += "<h2>Remaining</h2>";
+  page += "<h1>" + String(val) + "%</h1>";
+
+  if(val <= 20)
+    page += "<h2 style='color:red;'>LOW</h2>";
+  else if(val <= 50)
+    page += "<h2 style='color:orange;'>HALF</h2>";
+  else
+    page += "<h2 style='color:green;'>NORMAL</h2>";
+  page += "</div>";
+  page += "</body></html>";
+
+  server.send(200, "text/html", page);
+}
+
 void setup() {
   // Set up serial monitor
   Serial.begin(115200);
