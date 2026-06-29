@@ -1,18 +1,12 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include <BlynkSimpleEsp32.h>
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 #include "HX711.h"
 #define DOUT  23
 #define CLK  19
-#define BUZZER 25
 HX711 scale(DOUT, CLK);
-#define BLYNK_PRINT Serial
 
-char auth[] = "*******";
-char ssid[] = "*******";
-char pass[] = "********";
 
 int liter;
 int val;
@@ -31,10 +25,8 @@ void setup() {
   long zero_factor = scale.read_average(); //Get a baseline reading
   Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
   Serial.println(zero_factor);
-  Blynk.begin(auth, ssid, pass); 
 }
  void loop() {
- Blynk.run();
  measureweight();
 }
  
@@ -72,20 +64,4 @@ void measureweight(){
   Serial.println("%");
   Serial.println();
   delay(500);
-  if (val <= 50 && val >= 40){
-    Blynk.logEvent("iv_alert","IV Bottle is 50%");
-    digitalWrite(BUZZER, HIGH);
-    delay(50);
-    digitalWrite(BUZZER, LOW);
-    delay(50);
-  }
-  else if (val <= 20){
-    Blynk.logEvent("iv_alert","IV Bottle is too LOW");
-    digitalWrite(BUZZER, HIGH);
-  }
-  else{
-    digitalWrite(BUZZER, LOW);
-  }
-  Blynk.virtualWrite(V0,liter);
-  Blynk.virtualWrite(V1,val);
 }
