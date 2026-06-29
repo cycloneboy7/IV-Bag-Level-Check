@@ -53,9 +53,23 @@ void handleRoot() {
 void setup() {
   // Set up serial monitor
   Serial.begin(115200);
+
+  WiFi.begin(ssid, pass);
+  Serial.print("Connecting");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+  Serial.println("WiFi Connected!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+  server.on("/", handleRoot);
+  server.begin();
+  Serial.println("Web Server Started");
+
   lcd.init();
   lcd.backlight();
-  pinMode(BUZZER ,OUTPUT);
   Serial.println("Remove all weight from scale");
   scale.set_scale();
   scale.tare(); //Reset the scale to 0
@@ -65,6 +79,7 @@ void setup() {
 }
  void loop() {
  measureweight();
+ server.handleClient();
 }
  
 void measureweight(){
@@ -101,4 +116,14 @@ void measureweight(){
   Serial.println("%");
   Serial.println();
   delay(500);
+
+  String status;
+
+  if (val <= 20)
+      status = "LOW";
+  else if (val <= 50)
+    status = "HALF";
+  else
+    status = "NORMAL";
 }
+
